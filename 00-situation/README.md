@@ -30,7 +30,7 @@ It takes TotallySecure® 3 months to divulge to the public that they had been br
 
 <p align="center"> <img src="https://cdn3.whatculture.com/images/2013/03/community-dice-600x338.jpg"> </p>
 
-We will explore 6 different parallel universes where each successive universe has a version of our company, TotallySecure, with stronger password protections (it isn't the most riveting use of scifi multiverses but ¯\\_(ツ)_/¯)
+We will explore 6 different parallel universes where each successive universe has a version of our company, TotallySecure, with stronger password protections (it isn't the most riveting use of scifi multiverses but ¯\\\_(ツ)\_/¯)
 
 1. They stored credentials in plaintext
 
