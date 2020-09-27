@@ -5,7 +5,7 @@ import hashlib
 import argparse
 import random
 import logging
-
+import json
 
 class account:
     def __init__(self, username):
@@ -14,6 +14,8 @@ class account:
         self.pw_md5 = str()
         self.pw_sha2 = str()
         self.pw_md5_salt = str()
+    def __repr__(self):
+        return json.dumps(self.__dict__)
 
 """
 Params:
@@ -24,24 +26,21 @@ Returns:
 """
 def generate(n, gen_type, wordlist, perc_hpw):
 
+    faker = Faker()
+
     # Normalize the gen_type
     gen_type = gen_type.strip().lower()
     assert gen_type in ["plain", "md5", "sha2", "md5_salt", "all"]
     account_map = dict() 
 
-    wl_fd = open(wordlist, 'r')
-
-    # Since the wordlist file may be _huge_ (1mil+ lines), it would take forever to iteratively go through them every time we want a new line.
-    # Let's employ "reservoir sampling" to get the random lines.
-    def get_random_line():
-        aline = next(wl_fd)
-        for num, aline in enumerate(wl_fd, 2):
-            if random.randrange(num): continue
-            line = aline
-        return line
+    # Generate a list of fake passwords
+    with open(wordlist, 'r') as infile:
+        wordlist = infile.readlines()
+        wordlist = random.choices(wordlist, k=n)
+        wordlist = [_.strip() for _ in wordlist]
 
     def generate_fake_base():
-        for count in xrange(n):
+        for count in range(0, n):
             # Generate an email address as a username
             new_account = account(faker.email())
             # Generate a plaintext password
@@ -56,22 +55,21 @@ def generate(n, gen_type, wordlist, perc_hpw):
                         new_account.pw_plain = faker.uuid4()
                 else:
                     # Weak password
-                    new_account.pw_plain = "asdf"
+                    new_account.pw_plain = wordlist[count]
+            account_map[count + 1] = new_account
             
 
     def summon_salt():
         pass
 
-    #generate_fake_usernames()
-    print(get_random_line())
-    wl_fd.close()
+    generate_fake_base()
     return account_map
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', "--generator-type", help="Generator type is one of: [plain|md5|sha2|md5_salt|all] (default: plain)", default="plain")
     parser.add_argument('-n', "--number", help="Number of accounts to create (default: 250)", default=250)
-    parser.add_argument("--plaintext-wordlist", help="The list of words to be used as plaintext passwords", default="/usr/share/wordlists/rockyou.txt")
+    parser.add_argument("--plaintext-wordlist", help="The list of words to be used as plaintext passwords", default="./top-1000000-passwords.txt")
     parser.add_argument("--percent-random-hard-pw", help="Percentage of passwords that are difficult (0-100)", default=5)
     args = parser.parse_args()
 
