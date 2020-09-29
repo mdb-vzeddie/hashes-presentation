@@ -6,76 +6,59 @@ import argparse
 import random
 import logging
 import json
+import uuid
+import string
 
-class account:
-    def __init__(self, username):
-        self.username = username
-        self.pw_plain = str()
-        self.pw_md5 = str()
-        self.pw_sha2 = str()
-        self.pw_md5_salt = str()
-    def __repr__(self):
-        return json.dumps(self.__dict__)
+n = 100
 
-"""
-Params:
-    n <- number of accounts to generate
-    gen_type <- one of [plain|md5|sha2|md5_salt|all] (default: plain)
-Returns:
-    A dictionary with key = an account ID and value, an 'account' object with the appropriate attributes set
-"""
-def generate(n, gen_type, wordlist, perc_hpw):
+faker = Faker()
 
-    faker = Faker()
+types = ["plain", "md5", "sha2", "md5_salt"]
+alphanumeric = string.ascii_letters + string.digits
+account_map = dict()
 
-    # Normalize the gen_type
-    gen_type = gen_type.strip().lower()
-    assert gen_type in ["plain", "md5", "sha2", "md5_salt", "all"]
-    account_map = dict() 
+wordlist = './top-1000000-passwords.txt'
 
-    # Generate a list of fake passwords
-    with open(wordlist, 'r') as infile:
-        wordlist = infile.readlines()
-        wordlist = random.choices(wordlist, k=n)
-        wordlist = [_.strip() for _ in wordlist]
+perc_hpw = 25
 
-    def generate_fake_base():
-        for count in range(0, n):
-            # Generate an email address as a username
-            new_account = account(faker.email())
-            # Generate a plaintext password
-            if perc_hpw != 0:
-                i = random.randint(1, 100)
-                if i <= perc_hpw:
-                    # Strong password
-                    j = random.randint(0,1)
-                    if j:
-                        new_account.pw_plain = ''.join(faker.words(5))
-                    else:
-                        new_account.pw_plain = faker.uuid4()
-                else:
-                    # Weak password
-                    new_account.pw_plain = wordlist[count]
-            account_map[count + 1] = new_account
-            
+# Generate a list of fake passwords
+with open(wordlist, 'r') as infile:
+    wordlist = infile.readlines()
+    wordlist = random.choices(wordlist, k=n)
+    wordlist = [_.strip() for _ in wordlist]
 
-    def summon_salt():
-        pass
+used_pws = list()
+for count in range(0, n):
+    # Generate an email address as a username
+    new_username = faker.email()
+    # Generate a plaintext password
+    if perc_hpw != 0:
+        i = random.randint(1, 100)
+        if i <= perc_hpw:
+            # Strong password
+            j = random.randint(0,1)
+            if j:
+                pw_plain = ''.join(faker.words(5))
+            else:
+                pw_plain = ''.join(random.choices(alphanumeric, k=8))
+        else:
+            # Weak password
+            j = random.randint(0,10)
+            if j != 0:
+                pw_plain = wordlist[count]
+                used_pws.append(wordlist[count])
+            else:
+                pw_plain = random.choice(used_pws)
+                print("Reusing password for: {} -> {}".format(new_username, pw_plain))
+    pw_plain = pw_plain.encode()
+    pw_md5 = hashlib.md5(pw_plain).hexdigest()
+    pw_sha2 = hashlib.sha256(pw_plain).hexdigest()
+    salt = str(random.randint(100, 999)).encode()
+    pw_md5_salt = hashlib.md5(pw_plain + salt).hexdigest()
+    account_map[count + 1] = {"username": new_username, "pw": pw_plain.decode('ascii'), 'md5': pw_md5, 'sha2': pw_sha2, 'salt': salt.decode('ascii'), 'pw_md5_salt': pw_md5_salt}
 
-    generate_fake_base()
-    return account_map
+import pprint
+pprint.pprint(account_map)
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-t', "--generator-type", help="Generator type is one of: [plain|md5|sha2|md5_salt|all] (default: plain)", default="plain")
-    parser.add_argument('-n', "--number", help="Number of accounts to create (default: 250)", default=250)
-    parser.add_argument("--plaintext-wordlist", help="The list of words to be used as plaintext passwords", default="./top-1000000-passwords.txt")
-    parser.add_argument("--percent-random-hard-pw", help="Percentage of passwords that are difficult (0-100)", default=5)
-    args = parser.parse_args()
-
-    assert args.percent_random_hard_pw >= 0 and args.percent_random_hard_pw <= 100
-
-    logging.info(f"Going to create {args.number} account(s) of type {args.generator_type}...")
-
-    account_map = generate(args.number, args.generator_type, args.plaintext_wordlist, args.percent_random_hard_pw)
-    print(account_map)
+with open('accounts.json', 'w') as outfile:
+    outfile.write(json.dumps(account_map))
