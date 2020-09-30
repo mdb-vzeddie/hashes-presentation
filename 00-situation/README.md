@@ -38,11 +38,9 @@ We will explore 6 different parallel universes where each successive universe ha
 
 3. They stored credentials with a stronger hashing algorithm (SHA256)
 
-4. They stored credentials with a weak hasing algorithm plus a salt
+4. They stored credentials with a weak hashing algorithm plus a salt
 
-5. TODO
-
-6. TODO
+5. They stored credentials with a weak hashing algorithm (MD5) but we will use a rainbow table to crack passwords
 
 ### Footnotes
 
