@@ -37,6 +37,21 @@ The reason why we don't use it anymore is because there have been exploits disco
 
 However, it's really fast nowadays and I will use the MD5 hashing algorithm to showcase some cracking tools!
 
+## Dictionary attacks
+
+A *dictionary attack* is like a brute-force attack. If we had a list of common passwords, we can probably get some of the low hanging fruit like users whose passwords are `123456`. 
+
+Dictionary attacks are faciliated by "wordlists"- literally giant files of common passwords.
+
+Some include:
+
+* [rockyou.txt](https://gitlab.com/kalilinux/packages/wordlists/-/blob/kali/master/rockyou.txt.gz) - an old site called "rockyou" was compromised and had been storing credentials in plaintext. The wordlist contains 135MB worth of passwords (14,344,392 passwords)
+* [John the Ripper wordlist](http://downloads.skullsecurity.org/passwords/john.txt.bz2)
+* [Cain & Abel wordlist](http://downloads.skullsecurity.org/passwords/cain.txt.bz2)
+* Others here: https://wiki.skullsecurity.org/Passwords
+
+In this attack, the program will literally enumerate all of the lines in the wordlist and hash each line and compare it to the hash you're looking for. There are optimizations in the cracking tool though.
+
 ## Tools
 
 ### John The Ripper (JTR)
